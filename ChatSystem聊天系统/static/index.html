@@ -34,10 +34,28 @@
 
 </head>
 <body>
-    <form action="" class="login-form">
+    <form action="./main.html" class="login-form" method="post" onsubmit="return login()">
         <h1>在线聊天系统</h1>
-        <input type="text">
+        <input type="text" name="nickname" required="true">
         <input type="submit" value="登录">
     </form>
+
+    <script type="text/javascript">
+        function login() {
+            var element=document.getElementsByName('nickname')[0]
+            var nickname=element.value
+            localStorage.setItem('nickname',nickname)
+            return true
+        }
+
+        //检查登录用户名
+        window.onload=function () {
+            var nickname=localStorage.getItem('nickname')
+            if(nickname){
+                window.onload.href='./main.html'
+            }
+        }
+
+    </script>
 </body>
 </html>
