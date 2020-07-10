@@ -5,9 +5,21 @@
     <title>在线聊天系统</title>
 </head>
 <body>
+    <div class="container">
+        <div class="header">
+             <sapn id="hello_text">欢迎使用在线聊天系统</sapn>
+             <button onclick="quit()">注销</button>
+        </div>
 
-    <h1 id="hello_text">欢迎使用在线聊天系统</h1>
-    <button onclick="quit()">注销</button>
+        <div class="body">
+            <div class="friend-list"></div>
+            <div class="chat">
+                <div class="chat-main"></div>
+                <div class="chat-send"></div>
+            </div>
+        </div>
+    </div>
+
     <script type="text/javascript">
         window.onload=function () {
             var nickname=localStorage.getItem('nickname')
@@ -29,6 +41,67 @@
             window.location.href='./index.html'
         }
     </script>
+
+    <style type="text/css">
+        *{
+            margin:0;
+            padding: 0
+        }
+
+        body{ background: #efefef}
+        .container{
+
+            /*自身的样式*/
+            width: 70%;
+            min-width: 500px;
+            margin:5vh auto 0;
+            box-shadow: #b9b9b9 0 0 6px 4px;
+            background-color: white;
+            border-radius: 6px;
+            overflow: hidden;
+
+            /*内部元素的布局*/
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header{
+            padding: 6px 0;
+            text-align: center;
+        }
+        .body{
+            /*自身样式*/
+
+            height: 60vh;
+            background: blue;
+            /*内部元素的布局样式*/
+            display: flex;
+        }
+
+        .body .friend-list{
+            width: 146px;
+            background: #eee;
+            width: 20%;
+            min-width: 200px;
+            border-right: 1px solid #aaa;
+        }
+
+        .body .chat{
+            background: #eee;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .body .chat .chat-main{
+            flex-grow: 1;
+        }
+
+        .body .chat .chat-send{
+            height: 200px;
+            border-top: 2px solid #ccc;
+        }
+    </style>
 
 </body>
 </html>
