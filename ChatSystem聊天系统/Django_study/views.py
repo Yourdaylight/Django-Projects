@@ -1,10 +1,11 @@
 import os
 from django.http import HttpResponse
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render, reverse, redirect
 def home(request):
-    path=os.path.join(settings.BASE_DIR,'static','index.html')
-    html=''
-    with open(path,'r',encoding='utf-8') as f :
-        html=f.read()
+    return render(request,'../static/index.html')
 
-    return HttpResponse(html)
+
+def home2(request):
+    return render(request,'../static/main.html')

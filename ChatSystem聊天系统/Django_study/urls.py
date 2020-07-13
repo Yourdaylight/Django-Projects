@@ -19,7 +19,9 @@ from django.http import HttpResponse
 from django.conf.urls import url
 from Django_study import views
 
+
 urlpatterns = [
-    url(r'^$', views.home),
+    path('',views.home),
+    path(r'main.html/', views.home2,name='main'),
     path('admin/', admin.site.urls),
 ]
