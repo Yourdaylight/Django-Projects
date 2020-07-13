@@ -15,18 +15,50 @@
             <div class="friend-list"></div>
             <div class="chat">
                 <div class="chat-main"></div>
-                <div class="chat-send"></div>
+                <div class="chat-send">
+                    <textarea class="chat-input" name="" id="" cols="30" rows="10"></textarea>
+                    <div class="chat-send-bottom">
+                        <span class="chat-send-tip">Enter 发送, ctrl+enter换行</span>
+                        <button class="chat-send-btn" onclick="sendMessageBtn()">发送</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="text/javascript">
+        var ws//websocket连接对象
+        var url='ws://localhost:8000/'
+        //消息内容显示
+        var chat_main =document.getElementsByClassName('chat-main')[0]
         window.onload=function () {
             var nickname=localStorage.getItem('nickname')
             if(nickname){
                 //昵称存在，显示昵称
                 var element=document.getElementById("hello_text")
                 element.innerText=nickname+",欢迎使用在线聊天系统"
+
+                //建立webscoket连接
+                console.log(url)
+                ws=new WebSocket(url)
+
+                //定义事件
+                ws.onopen=(function (e) {
+                    console.log('WebSocket建立连接成功')
+                    addMessage('系统通知:和服务器建立连接成功')
+                })
+                 ws.onmessage=(function (e) {
+                    console.log('WebSocket收到消息:',e.data)
+                     addMessage("收到消息:",e.data)
+                })
+                 ws.onclose=(function (e) {
+                     console.log('WebSocket连接中断')
+                     addMessage('系统通知:和服务器断开连接')
+                })
+                 ws.onerror=(function (e) {
+                    console.log('WebSocket错误',e)
+                })
+
             }
             else {
                 //昵称不存在，跳转 到登录页面
@@ -35,8 +67,40 @@
 
         }
 
+
+        //发送按钮点击事件
+        function sendMessageBtn() {
+            //获取文本内容
+            var input=document.getElementsByClassName('chat-input')[0]
+            var text=input.value
+            //发送文本消息
+            var result=sendMessage(text)
+            if(result)
+                input.value='';
+        }
+        //发送消息的函数
+        function sendMessage(text) {
+            if(!ws){return false;}
+            if(ws.readyState!=ws.OPEN){return false;}
+            ws.send(text)
+            return true
+        }
+
+        //把消息加入到聊天界面
+        function addMessage(text) {
+
+            var message=document.createElement('p')
+            message.innerText=text
+            chat_main.appendChild(message);
+        }
         //注销函数
         function quit() {
+            //关闭websocket
+            if(ws){
+                if(ws.readyState==ws.OPEN)
+                    ws.close()
+            }
+            //跳转页面
             localStorage.removeItem('nickname');
             window.location.href='./index.html'
         }
@@ -100,6 +164,35 @@
         .body .chat .chat-send{
             height: 200px;
             border-top: 2px solid #ccc;
+            display: flex;
+            flex-direction: column;
+        }
+         .body .chat .chat-input{
+             resize: none;
+             flex-grow:1;
+             border:none;
+             padding: 0.5em;
+             font-size:large;
+         }
+
+        .body .chat .chat-input:focus{
+            outline: none;
+        }
+
+        .body .chat-send .chat-send-bottom{
+            display: flex;
+            /*在弹性盒对象的 <div> 元素中之间留下空白：*/
+            justify-content: space-between;
+            /*对齐弹性盒的各项 <div> 元素：*/
+            align-items: center;
+            padding: 0.5em;
+            font-size: small;
+            color: #bdbdbd;
+            background: #fff;
+        }
+
+        .body .chat-send-bottom .chat-send-btn{
+            padding: 0.2em 1em;
         }
     </style>
 
