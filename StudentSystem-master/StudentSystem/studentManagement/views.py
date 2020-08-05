@@ -1,7 +1,8 @@
 from django.shortcuts import render, HttpResponse, redirect, reverse
 from .models import StudentModel, StudentInformationModel, CourseModel
+from django.forms.models  import model_to_dict
 # Create your views here.
-
+import json
 # 主界面
 def index(request):
     context = {
@@ -19,10 +20,9 @@ def login(request):
         else:
             student = StudentModel.objects.filter(username=username, password=password)
             if len(student):
-
                 # 将用户的信息存放到session中，session在中间件中是默认启用的
                 request.session['user'] = {
-                    'id': id,
+                    'id':student[0].stu_id,
                     'username': username,
                     'password': password
                 }
@@ -31,7 +31,7 @@ def login(request):
                     'msg': '已登录',
                     'lenght': 1
                 }
-                return render(request, 'studentManage/index.html', context)
+                return render(request, 'studentManage/index.html',context)
 
             else:
                 context = {
@@ -50,16 +50,26 @@ def regist(request):
         username=request.POST.get("username")
         password=request.POST.get("password")
         verif_password=request.POST.get("verif_password")
-        if verif_password!=password:
-            context={
-                "error":'两次密码输入不一致'
+        student = StudentModel.objects.filter(username=username)
+        #注册验证错误信息汇总
+        error_message=""
+        if not all([username,password,verif_password]):
+            error_message+="注册信息不能为空;\n"
+        if student:
+            error_message+="该用户名已存在;\n"
+        if password!=verif_password:
+            error_message+="两次密码输入不一致;\n"
+        #如果存在注册信息则重定向到注册页面
+        if error_message:
+            context = {
+                "error": error_message
             }
             return render(request,'studentManage/regist.html',context)
 
+        #注册信息有效，注册成功
         stu_data = StudentModel()
         stu_data.username= username
         stu_data.password=password
-
         stu_data.save()
         context = {
             'sucess': '增加成功',
@@ -79,27 +89,21 @@ def add(request):
     if request.method == "POST":
         root_information = request.session['user']
         id = root_information['id']
-        root_id = StudentModel.objects.get(pk=1).stu_id
+        root_id = StudentModel.objects.get(pk=id).stu_id
         if id == root_id:
-            stu_id = request.POST.get('stu_id')
             stu_name = request.POST.get('stu_name')
-            if not all([stu_id, stu_name]):
+            if not all([stu_name]):
                 context = {
-                    'msg': '学号或名字有遗漏',
+                    'msg': '名字有遗漏',
                 }
                 return render(request, 'studentManage/add.html', context)
-            stu_phone = request.POST.get('stu_phone')
-            stu_addr = request.POST.get('str_addr')
-            stu_faculty = request.POST.get('stu_faculty')
-            stu_major = request.POST.get('stu_major')
 
             stu_data = StudentInformationModel()
-            stu_data.stu_id = stu_id
             stu_data.stu_name = stu_name
-            stu_data.stu_phone = stu_phone
-            stu_data.str_addr = stu_addr
-            stu_data.stu_faculty = stu_faculty
-            stu_data.stu_major = stu_major
+            stu_data.stu_phone = request.POST.get('stu_phone')
+            stu_data.str_addr = request.POST.get('str_addr')
+            stu_data.stu_faculty =request.POST.get('stu_faculty')
+            stu_data.stu_major = request.POST.get('stu_major')
             stu_data.save()
             context = {
                 'sucess': '增加成功',
@@ -118,24 +122,22 @@ def add(request):
 def select(request):
     if request.method == "POST":
         id = request.POST.get('stu_id')
-        stu_data = StudentInformationModel.objects.get(stu_id=id)
-        stu_id = stu_data.stu_id
-        stu_name = stu_data.stu_name
-        stu_phone = stu_data.stu_phone
-        str_addr = stu_data.str_addr
-        stu_faculty = stu_data.stu_faculty
-        stu_major = stu_data.stu_major
+        if id=='':
+            id=request.session['user']['id']
+        print()
+        stu_data = StudentInformationModel.objects.get(pk=id)
+
         stu_course = CourseModel.objects.filter(cour_id=id)
         dct = {}
         for stu in stu_course:
             dct[stu.course] = stu.grade
         context = {
-            'stu_id': stu_id,
-            'stu_name': stu_name,
-            'stu_phone': stu_phone,
-            'str_addr': str_addr,
-            'stu_faculty': stu_faculty,
-            'stu_major': stu_major,
+            'stu_id': id,
+            'stu_name': stu_data.stu_name,
+            'stu_phone':stu_data.stu_phone,
+            'str_addr': stu_data.str_addr,
+            'stu_faculty':  stu_data.stu_faculty,
+            'stu_major':  stu_data.stu_major,
             'course_data': dct,
             'msg': True
         }
@@ -152,7 +154,7 @@ def select(request):
 # 删除
 def delete(request):
     if request.method == "POST":
-        id = request.POST.get('id')
+        id = int(request.POST.get('id'))
         StudentInformationModel.objects.filter(stu_id=id).delete()
         context = {
             'msg': '成功删除'
@@ -172,46 +174,21 @@ def update(request):
     user_information = request.session['user']
     id = user_information['id']
     stu_data = StudentInformationModel.objects.get(stu_id=id)
-    stu_id = stu_data.stu_id
-    stu_name = stu_data.stu_name
-    stu_phone = stu_data.stu_phone
-    stu_addr = stu_data.str_addr
-    stu_faculty = stu_data.stu_faculty
-    stu_major = stu_data.stu_major
     context = {
-        'stu_id': stu_id,
-        'stu_name': stu_name,
-        'stu_phone': stu_phone,
-        'stu_addr': stu_addr,
-        'stu_faculty': stu_faculty,
-        'stu_major': stu_major,
+            'stu_id': stu_data.stu_id,
+            'stu_name': stu_data.stu_name,
+            'stu_phone':stu_data.stu_phone,
+            'str_addr': stu_data.str_addr,
+            'stu_faculty':  stu_data.stu_faculty,
+            'stu_major':  stu_data.stu_major,
     }
     if request.method == "POST":
-        stu_id = request.POST.get('stu_id')
-        stu_name = request.POST.get('stu_name')
-        stu_phone = request.POST.get('stu_phone')
-        stu_addr = request.POST.get('stu_addr')
-        stu_faculty = request.POST.get('stu_faculty')
-        stu_major = request.POST.get('stu_major')
-        # StudentInformationModel.objects.filter(stu_id=id).update(stu_id=stu_id, stu_name=stu_name, stu_phone=stu_phone, str_addr=stu_addr, stu_faculty=stu_faculty, stu_major=stu_major)
-        # 或者 以下这种，对单个数据进行修改
-        stu_data = StudentInformationModel.objects.get(stu_id=id)
-        stu_data.stu_id = stu_id
-        stu_data.stu_name = stu_name
-        stu_data.stu_phone = stu_phone
-        stu_data.stu_addr = stu_addr
-        stu_data.stu_faculty = stu_faculty
-        stu_data.stu_major = stu_major
-        stu_data.save()
-        context = {
-            'stu_id': stu_id,
-            'stu_name': stu_name,
-            'stu_phone': stu_phone,
-            'stu_addr': stu_addr,
-            'stu_faculty': stu_faculty,
-            'stu_major': stu_major,
-            'msg': '修改成功'
-        }
+        context['stu_id'] = request.POST.get('stu_id')
+        context['stu_name'] = request.POST.get('stu_name')
+        context['stu_phone'] = request.POST.get('stu_phone')
+        context['stu_addr'] = request.POST.get('stu_addr')
+        context['stu_faculty'] = request.POST.get('stu_faculty')
+        context['stu_major'] = request.POST.get('stu_major')
         return render(request, 'studentManage/update.html', context)
     else:
         return render(request, 'studentManage/update.html', context)

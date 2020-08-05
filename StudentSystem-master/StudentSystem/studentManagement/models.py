@@ -13,7 +13,7 @@ class CourseModel(models.Model):
 
 # 学生信息表
 class StudentInformationModel(models.Model):
-    stu_id = models.CharField(max_length=15, verbose_name='学生ID')
+    stu_id = models.AutoField(primary_key=True,verbose_name='学生id')
     stu_name = models.CharField(max_length=30, verbose_name='学生姓名')
     stu_phone = models.CharField(max_length=20, verbose_name='学生电话')
     str_addr = models.TextField(verbose_name='学生地址')

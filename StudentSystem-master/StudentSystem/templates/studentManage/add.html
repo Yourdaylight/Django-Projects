@@ -19,10 +19,10 @@
     学生专业：<input type="text" name="stu_major"/><br>
     <input class="bc" type="submit" value="保存"/>
     {% if error %}
-        <h5>{{ error }}</h5><br>
+        <h5 style="color: red">{{ error }}</h5><br>
     {% endif %}
     {% if sucess %}
-        <h5>{{ sucess }}</h5><br>
+        <h5 style="color: greenyellow">{{ sucess }}</h5><br>
     {% endif %}
 </form>
 </body>
