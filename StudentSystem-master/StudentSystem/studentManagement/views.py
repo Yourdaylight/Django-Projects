@@ -92,19 +92,21 @@ def add(request):
         root_id = StudentModel.objects.get(pk=id).stu_id
         if id == root_id:
             stu_name = request.POST.get('stu_name')
-            if not all([stu_name]):
+            if not stu_name:
                 context = {
                     'msg': '名字有遗漏',
                 }
                 return render(request, 'studentManage/add.html', context)
 
             stu_data = StudentInformationModel()
+            stu_data.stu_id=id
             stu_data.stu_name = stu_name
             stu_data.stu_phone = request.POST.get('stu_phone')
             stu_data.str_addr = request.POST.get('str_addr')
             stu_data.stu_faculty =request.POST.get('stu_faculty')
             stu_data.stu_major = request.POST.get('stu_major')
             stu_data.save()
+
             context = {
                 'sucess': '增加成功',
             }
@@ -124,8 +126,13 @@ def select(request):
         id = request.POST.get('stu_id')
         if id=='':
             id=request.session['user']['id']
-        print()
-        stu_data = StudentInformationModel.objects.get(pk=id)
+        try:
+            stu_data = StudentInformationModel.objects.get(pk=id)
+        except:
+            context = {
+                'error': "not found studnet id: "+str(id),
+            }
+            return render(request, 'studentManage/select.html', context)
 
         stu_course = CourseModel.objects.filter(cour_id=id)
         dct = {}
@@ -142,6 +149,8 @@ def select(request):
             'msg': True
         }
         return render(request, 'studentManage/select.html', context)
+
+    # 删除
     else:
         root_information = request.session['user']
         id = root_information['id']
@@ -154,8 +163,11 @@ def select(request):
 # 删除
 def delete(request):
     if request.method == "POST":
-        id = int(request.POST.get('id'))
-        StudentInformationModel.objects.filter(stu_id=id).delete()
+        id = int(request.POST.get('stu_id'))
+        try:
+            StudentInformationModel.objects.filter(stu_id=id).delete()
+        except:
+            pass
         context = {
             'msg': '成功删除'
         }

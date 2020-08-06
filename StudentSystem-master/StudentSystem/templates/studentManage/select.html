@@ -29,5 +29,8 @@
         {% endfor %}
     </ul>
 {% endif %}
+{% if error %}
+    <h2 style="color: red">{{ error}}</h2>
+{% endif %}
 </body>
 </html>
